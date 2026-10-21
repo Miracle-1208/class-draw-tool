@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>高三17班 · 课堂随机抽签</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #070b14;
+    --text: #f2f6fc;
+    --muted: rgba(226, 236, 250, 0.62);
+    --faint: rgba(226, 236, 250, 0.38);
+    --line: rgba(255, 255, 255, 0.09);
+    --line-strong: rgba(255, 255, 255, 0.15);
+    --panel: rgba(255, 255, 255, 0.035);
+    --panel-strong: rgba(255, 255, 255, 0.06);
+    --accent: #6fe7d2;
+    --accent2: #28c8b4;
+    --accent-soft: rgba(111, 231, 210, 0.12);
+    --glow: rgba(40, 200, 180, 0.27);
+    --on-accent: #04241f;
+    --ghost-line: rgba(111, 231, 210, 0.105);
+    --font-sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Source Han Sans SC", system-ui, -apple-system, sans-serif;
+    --font-num: "Bahnschrift", "DIN Alternate", "Arial Narrow", var(--font-sans);
+  }
+
+  [hidden] { display: none !important; }
+
+  html { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+  button { font-family: inherit; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  button:disabled { cursor: not-allowed; opacity: 0.35; }
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.045);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    font-family: var(--font-num);
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+  }
+
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.035), transparent 55%), var(--bg);
+  }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .glow-a {
+    width: 58vw;
+    height: 58vw;
+    min-width: 560px;
+    min-height: 560px;
+    top: -30%;
+    right: -8%;
+    background: radial-gradient(circle, var(--glow) 0%, transparent 64%);
+    filter: blur(28px);
+    opacity: 0.8;
+  }
+  .glow-b {
+    width: 52vw;
+    height: 52vw;
+    min-width: 480px;
+    min-height: 480px;
+    left: -20%;
+    bottom: -30%;
+    background: radial-gradient(circle, rgba(80, 120, 190, 0.11) 0%, transparent 66%);
+    filter: blur(34px);
+  }
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 76px 76px;
+    opacity: 0.22;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 44%, #000 8%, transparent 72%);
+    mask-image: radial-gradient(ellipse at 50% 44%, #000 8%, transparent 72%);
+  }
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, transparent 32%, rgba(3, 6, 12, 0.72) 100%);
+  }
+
+  .app {
+    position: relative;
+    width: 100%;
+    max-width: 1520px;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: clamp(14px, 2.1vh, 24px) clamp(18px, 3.5vw, 54px) clamp(11px, 1.5vh, 17px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.55vh, 16px);
+  }
+
+  /* ---------- header ---------- */
+  .topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+  }
+  .brand-mark {
+    position: relative;
+    width: 47px;
+    height: 47px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--ghost-line);
+    border-radius: 14px;
+    background: linear-gradient(145deg, var(--accent-soft), rgba(255, 255, 255, 0.022));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 24px -12px var(--glow);
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(140deg, transparent 35%, var(--glow), transparent 68%);
+    opacity: 0.35;
+  }
+  .brand-mark span {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-num);
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+  .brand-copy { min-width: 0; }
+  .brand-copy h1 {
+    margin: 0;
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .brand-copy p {
+    margin: 4px 0 0;
+    font-size: 10.5px;
+    color: var(--faint);
+    letter-spacing: 0.22em;
+  }
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  .pill-btn {
+    height: 38px;
+    padding: 0 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .pill-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+    background: var(--panel-strong);
+    color: var(--text);
+  }
+  .pill-btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+  .pill-btn .count {
+    min-width: 21px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--font-num);
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .icon-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+    background: var(--panel-strong);
+    color: var(--text);
+  }
+  .icon-btn svg { width: 17px; height: 17px; }
+
+  .main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.4vh, 14px);
+  }
+
+  /* ---------- stage ---------- */
+  .stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: clamp(17px, 2.3vh, 26px) clamp(22px, 3vw, 38px) clamp(15px, 2vh, 23px);
+    border: 1px solid var(--line);
+    border-radius: clamp(22px, 2vw, 28px);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.015) 58%, rgba(255, 255, 255, 0.032) 100%);
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 18%;
+    right: 18%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.55;
+    z-index: 2;
+  }
+  .ghost-num {
+    position: absolute;
+    right: -1.5%;
+    bottom: -31%;
+    z-index: 0;
+    font-family: var(--font-num);
+    font-size: clamp(300px, 42vw, 620px);
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.07em;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--ghost-line);
+    user-select: none;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .stage.is-revealed .ghost-num { opacity: 1.25; }
+  .stage-head {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .status-pill {
+    height: 31px;
+    padding: 0 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.032);
+    color: var(--muted);
+    font-size: 11.5px;
+    letter-spacing: 0.035em;
+    white-space: nowrap;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 var(--glow);
+    animation: pulseDot 2.4s ease-out infinite;
+  }
+  .status-pill.is-done .status-dot {
+    background: var(--faint);
+    animation: none;
+    box-shadow: none;
+  }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 var(--glow); }
+    65% { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .stage-tools {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .progress-copy {
+    color: var(--faint);
+    font-size: 11.5px;
+    letter-spacing: 0.035em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-copy b {
+    color: var(--text);
+    font-family: var(--font-num);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .text-btn {
+    height: 30px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--faint);
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .text-btn:hover { background: rgba(255, 255, 255, 0.055); color: var(--text); }
+  .text-btn svg { width: 13px; height: 13px; }
+
+  .display {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px 0;
+  }
+  .halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    width: min(48vh, 520px);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .halo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    border-radius: 50%;
+  }
+  .halo::after {
+    content: "";
+    position: absolute;
+    inset: 9%;
+    border: 1px dashed var(--ghost-line);
+    border-radius: 50%;
+    animation: spin 76s linear infinite;
+  }
+  .halo .halo-arc {
+    position: absolute;
+    inset: 0;
+    border: 1px solid transparent;
+    border-top-color: var(--accent);
+    border-right-color: var(--accent);
+    border-radius: 50%;
+    opacity: 0.32;
+    filter: drop-shadow(0 0 7px var(--glow));
+    animation: spin 16s linear infinite;
+  }
+  .halo .halo-fill {
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 68%);
+    filter: blur(22px);
+    opacity: 0.85;
+  }
+  .halo.pulse { animation: haloPulse 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes haloPulse {
+    0% { transform: translate(-50%, -50%) scale(0.94); }
+    38% { transform: translate(-50%, -50%) scale(1.035); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+  .stage.is-rolling .halo .halo-arc { animation-duration: 1.3s; opacity: 0.72; }
+  .stage.is-rolling .halo .halo-fill { opacity: 1; }
+
+  .eyebrow {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding-left: 0.18em;
+    color: var(--accent);
+    font-size: clamp(10.5px, 0.9vw, 12px);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    opacity: 0.9;
+  }
+  .eyebrow::before,
+  .eyebrow::after {
+    content: "";
+    width: clamp(18px, 2.3vw, 34px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ghost-line));
+  }
+  .eyebrow::after { transform: scaleX(-1); }
+  .name-line {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(118px, 16.5vh, 184px);
+    margin: clamp(6px, 0.8vh, 10px) 0 clamp(5px, 0.8vh, 9px);
+  }
+  .name {
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(64px, 10.2vw, 136px);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    text-shadow: 0 0 70px rgba(255, 255, 255, 0.07);
+    transform: translateZ(0);
+  }
+  .name.is-long { font-size: clamp(54px, 8.5vw, 116px); letter-spacing: 0.018em; }
+  .stage.is-idle .name {
+    color: var(--accent);
+    font-family: var(--font-num);
+    font-size: clamp(104px, 14vw, 188px);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-shadow: 0 0 58px var(--glow);
+    animation: idleFloat 4.8s ease-in-out infinite;
+  }
+  @keyframes idleFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.9; }
+    50% { transform: translateY(-7px); opacity: 1; }
+  }
+  .stage.is-rolling .name {
+    font-family: var(--font-sans);
+    font-size: clamp(54px, 8.5vw, 116px);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    animation: nameFlicker 0.17s steps(2, end) infinite;
+  }
+  @keyframes nameFlicker {
+    0% { opacity: 0.68; transform: translateY(1px); }
+    100% { opacity: 1; transform: translateY(-1px); }
+  }
+  .name.reveal { animation: revealName 0.56s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes revealName {
+    0% { opacity: 0.15; transform: scale(1.1); filter: blur(10px); }
+    55% { opacity: 1; filter: blur(0); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+  .subline {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    min-height: 21px;
+    color: rgba(226, 236, 250, 0.56);
+    font-size: clamp(11px, 1vw, 12.5px);
+    line-height: 1.7;
+    letter-spacing: 0.06em;
+    text-wrap: balance;
+  }
+
+  .stage-foot {
+    position: relative;
+    z-index: 3;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding-top: clamp(5px, 0.9vh, 10px);
+  }
+  .draw-btn {
+    position: relative;
+    overflow: hidden;
+    min-width: clamp(222px, 20vw, 276px);
+    height: clamp(54px, 6.7vh, 63px);
+    padding: 0 clamp(28px, 3vw, 42px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    box-shadow: 0 12px 42px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    color: var(--on-accent);
+    font-size: clamp(16px, 1.55vw, 19px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+  }
+  .draw-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -65%;
+    width: 34%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+    transform: skewX(-18deg);
+    transition: left 0.55s ease;
+  }
+  .draw-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.035);
+    box-shadow: 0 18px 52px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+  .draw-btn:hover::before { left: 128%; }
+  .draw-btn:active { transform: translateY(0) scale(0.995); }
+  .draw-btn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+  .stage.is-rolling .draw-btn { animation: btnPulse 1.2s ease-in-out infinite; }
+  .stage.is-rolling .draw-btn svg { animation: spin 2.4s linear infinite; }
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 12px 42px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.42); }
+    50% { box-shadow: 0 12px 62px var(--glow), 0 0 0 7px rgba(255, 255, 255, 0.035), inset 0 1px 0 rgba(255, 255, 255, 0.42); }
+  }
+  .key-hint {
+    margin: 0;
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+  }
+  .key-hint kbd { margin: 0 2px; }
+  .stage-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    transition: opacity 0.3s ease;
+  }
+  .stage-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    box-shadow: 0 0 14px var(--glow);
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .stage.mode-repeat .stage-progress { opacity: 0; }
+
+  /* ---------- dock ---------- */
+  .dock {
+    flex: 0 0 auto;
+    min-height: clamp(90px, 11.5vh, 106px);
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 21px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.043), rgba(255, 255, 255, 0.016));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .dock-mode {
+    flex: 0 0 clamp(206px, 17.5vw, 246px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7px;
+    padding: 15px clamp(18px, 2vw, 23px);
+    border-right: 1px solid var(--line);
+  }
+  .dock-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--faint);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+  .segmented {
+    width: fit-content;
+    display: flex;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.27);
+  }
+  .segmented button {
+    padding: 6px 15px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--faint);
+    font-size: 11.5px;
+    letter-spacing: 0.035em;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .segmented button:hover { color: var(--text); }
+  .segmented button.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--ghost-line);
+  }
+  .mode-hint {
+    margin: 0;
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.035em;
+    white-space: nowrap;
+  }
+  .dock-history {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 9px;
+    padding: 15px clamp(18px, 2vw, 23px);
+  }
+  .dock-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .history-count {
+    min-width: 18px;
+    height: 16px;
+    padding: 0 5px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    font-family: var(--font-num);
+    font-size: 9.5px;
+    letter-spacing: 0;
+  }
+  .history-caption {
+    color: var(--faint);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+  }
+  .chips {
+    min-height: 27px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+  .chips::-webkit-scrollbar { height: 3px; }
+  .chips::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 3px; }
+  .chips::-webkit-scrollbar-track { background: transparent; }
+  .chips-empty {
+    color: var(--faint);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .chip {
+    flex: 0 0 auto;
+    height: 25px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.028);
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.025em;
+    animation: chipIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .chip.newest {
+    border-color: var(--ghost-line);
+    background: var(--accent-soft);
+    color: var(--accent);
+    box-shadow: 0 0 18px -5px var(--glow);
+  }
+  @keyframes chipIn {
+    from { opacity: 0; transform: translateX(-7px) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+  .roster-link {
+    flex: 0 0 clamp(144px, 13vw, 180px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .roster-link:hover { background: var(--accent-soft); color: var(--text); }
+  .roster-link svg { width: 19px; height: 19px; color: var(--accent); }
+  .roster-link-title { font-size: 11.5px; letter-spacing: 0.08em; }
+  .roster-link-sub {
+    color: var(--faint);
+    font-family: var(--font-num);
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------- footer ---------- */
+  .footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 5px;
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.045em;
+  }
+  .footer b { color: var(--muted); font-family: var(--font-num); font-weight: 600; }
+  .footer-keys { display: inline-flex; align-items: center; gap: 5px; }
+  .footer-keys kbd { margin: 0 1px; }
+  .dot-sep { opacity: 0.45; margin: 0 2px; }
+
+  /* ---------- dialogs ---------- */
+  .modal {
+    width: min(880px, calc(100vw - 48px));
+    max-width: none;
+    max-height: calc(100dvh - 42px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    overflow: visible;
+  }
+  .modal::backdrop {
+    background: rgba(3, 6, 12, 0.74);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .modal[open] { animation: modalIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+  .modal-inner {
+    max-height: calc(100dvh - 42px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: clamp(21px, 2.8vw, 30px);
+    border: 1px solid var(--line-strong);
+    border-radius: 23px;
+    background:
+      radial-gradient(ellipse at 50% -20%, var(--accent-soft), transparent 50%),
+      linear-gradient(180deg, #0d1524 0%, #0a101c 100%);
+    box-shadow: 0 44px 130px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .modal-kicker {
+    margin: 0 0 6px;
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+  .modal-head h2 {
+    margin: 0;
+    font-size: clamp(19px, 1.9vw, 23px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .close-btn { width: 34px; height: 34px; border-radius: 9px; }
+  .roster-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin: 17px 0 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.022);
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .meta-item { display: inline-flex; align-items: center; gap: 7px; }
+  .meta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .meta-dot.accent { background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+  .roster-note {
+    margin-left: auto;
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+  .roster-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+  .roster-scroll::-webkit-scrollbar { width: 5px; }
+  .roster-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 5px; }
+  .roster-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 2px;
+  }
+  .roster-item {
+    position: relative;
+    min-width: 0;
+    min-height: 41px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.024);
+    color: var(--text);
+    font-size: 12px;
+    transition: opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+  .roster-item .idx {
+    flex: 0 0 auto;
+    color: var(--faint);
+    font-family: var(--font-num);
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+  .roster-item .nm {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .roster-item .tag {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--accent);
+    font-family: var(--font-num);
+    font-size: 8.5px;
+    letter-spacing: 0.02em;
+  }
+  .roster-item.is-drawn {
+    opacity: 0.46;
+    background: rgba(255, 255, 255, 0.01);
+  }
+  .roster-item.is-drawn .nm { text-decoration: line-through; text-decoration-color: var(--ghost-line); }
+  .roster-item.is-drawn .tag { display: none; }
+  .roster-item.is-drawn::after {
+    content: "✓";
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 10.5px;
+    opacity: 0.9;
+  }
+  .roster-item.is-hit {
+    border-color: var(--ghost-line);
+    background: var(--accent-soft);
+  }
+  .modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 15px;
+    padding-top: 13px;
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.03em;
+  }
+  .soft-btn {
+    height: 36px;
+    padding: 0 17px;
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+  .soft-btn:hover { background: rgba(255, 255, 255, 0.075); color: var(--text); }
+  .solid-btn {
+    height: 36px;
+    padding: 0 19px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 9px 26px -8px var(--glow);
+    color: var(--on-accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  .solid-btn:hover { transform: translateY(-1px); filter: brightness(1.035); }
+  .confirm-modal { width: min(468px, calc(100vw - 40px)); }
+  .confirm-text {
+    margin: 19px 0 25px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 9px; }
+
+  /* ---------- toast / a11y / confetti ---------- */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(22px, 4vh, 38px);
+    z-index: 120;
+    padding: 10px 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: rgba(12, 19, 33, 0.95);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: var(--text);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .confetti {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  @media (max-width: 960px) {
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; min-height: 100dvh; }
+    .main { min-height: 0; }
+    .stage { min-height: 440px; }
+    .pill-btn .pill-label { display: none; }
+    .dock { flex-wrap: wrap; }
+    .dock-mode {
+      flex: 1 1 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 17px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .mode-hint { display: none; }
+    .dock-history { flex: 1 1 60%; padding: 11px 17px; }
+    .roster-link { flex: 1 1 30%; min-height: 62px; border-left: 1px solid var(--line); }
+    .roster-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .glow-a { opacity: 0.6; }
+  }
+
+  @media (max-width: 640px) {
+    .app { padding: 13px 13px 10px; gap: 9px; }
+    .brand-mark { width: 41px; height: 41px; border-radius: 12px; }
+    .brand-mark span { font-size: 18px; }
+    .brand-copy h1 { font-size: 14.5px; }
+    .brand-copy p { font-size: 9px; letter-spacing: 0.16em; }
+    .top-actions { gap: 6px; }
+    .pill-btn { height: 34px; padding: 0 9px; }
+    .pill-btn .count { display: none; }
+    .icon-btn { width: 34px; height: 34px; }
+    .stage { min-height: 410px; padding: 15px 16px 14px; border-radius: 20px; }
+    .status-pill { height: 28px; font-size: 10.5px; padding: 0 10px; }
+    .stage-tools { gap: 8px; }
+    .progress-copy { font-size: 10.5px; }
+    .text-btn span { display: none; }
+    .name { font-size: clamp(54px, 14vw, 72px); }
+    .name.is-long { font-size: clamp(44px, 11.5vw, 60px); }
+    .stage.is-rolling .name { font-size: clamp(44px, 11.5vw, 60px); }
+    .stage.is-idle .name { font-size: clamp(92px, 25vw, 118px); }
+    .name-line { min-height: 104px; }
+    .halo { width: min(52vw, 340px); }
+    .eyebrow { font-size: 9.5px; letter-spacing: 0.12em; gap: 8px; }
+    .subline { font-size: 10.5px; }
+    .draw-btn { min-width: 200px; height: 53px; font-size: 16px; }
+    .key-hint { font-size: 9px; }
+    .dock-mode { padding: 10px 14px; }
+    .dock-history { flex: 1 1 100%; padding: 10px 14px; }
+    .roster-link { flex: 1 1 100%; min-height: 54px; flex-direction: row; gap: 8px; border-left: 0; border-top: 1px solid var(--line); }
+    .roster-link-title { font-size: 11px; }
+    .roster-link-sub { font-size: 9px; }
+    .footer { font-size: 9px; }
+    .footer-keys { display: none; }
+    .roster-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .modal { width: calc(100vw - 26px); max-height: calc(100dvh - 26px); }
+    .modal-inner { max-height: calc(100dvh - 26px); padding: 18px; border-radius: 19px; }
+    .roster-meta { gap: 10px 14px; margin: 14px 0 11px; padding: 9px 11px; }
+    .roster-note { margin-left: 0; width: 100%; }
+    .roster-item { min-height: 37px; font-size: 11px; padding: 0 8px; gap: 5px; }
+    .modal-foot > span { display: none; }
+    .modal-foot { justify-content: flex-end; }
+    .footer { justify-content: center; }
+  }
+
+  @media (max-height: 760px) and (min-width: 961px) {
+    .app { padding-top: 11px; padding-bottom: 9px; gap: 9px; }
+    .brand-mark { width: 41px; height: 41px; border-radius: 12px; }
+    .brand-mark span { font-size: 18px; }
+    .topbar { min-height: 38px; }
+    .stage { padding: 14px 26px 13px; border-radius: 22px; }
+    .name-line { min-height: 108px; margin: 2px 0 4px; }
+    .name { font-size: clamp(54px, 8.2vw, 104px); }
+    .name.is-long, .stage.is-rolling .name { font-size: clamp(48px, 7vw, 92px); }
+    .stage.is-idle .name { font-size: clamp(84px, 11vw, 148px); }
+    .eyebrow { font-size: 10px; }
+    .subline { font-size: 10.5px; min-height: 18px; }
+    .stage-foot { gap: 5px; padding-top: 2px; }
+    .draw-btn { height: 48px; min-width: 210px; font-size: 15.5px; }
+    .key-hint { font-size: 9px; }
+    .halo { width: min(42vh, 400px); }
+    .dock { min-height: 80px; }
+    .dock-mode, .dock-history { padding-top: 9px; padding-bottom: 9px; gap: 6px; }
+    .mode-hint { display: none; }
+    .footer { display: none; }
+    .roster-item { min-height: 38px; }
+  }
+
+  @media (max-height: 610px) {
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100dvh; }
+    .stage { min-height: 370px; }
+    .footer { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+  <div class="grid-lines"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span>17</span></div>
+      <div class="brand-copy">
+        <h1>高三17班</h1>
+        <p>课堂随机抽签</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="pill-btn" id="rosterOpen" aria-label="打开全班名册">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
+        </svg>
+        <span class="pill-label">全班名册</span>
+        <span class="count">50</span>
+      </button>
+      <button type="button" class="icon-btn" id="soundToggle" aria-label="关闭音效" aria-pressed="true" title="音效已开启">
+        <svg class="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5Z"/>
+          <path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>
+        </svg>
+        <svg class="icon-sound-off" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5Z"/>
+          <path d="m22 9-6 6"/><path d="m16 9 6 6"/>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="fullscreenToggle" aria-label="进入全屏" title="全屏 (F)">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        <svg class="icon-compress" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="stage" id="stage" aria-label="课堂随机抽签">
+      <div class="ghost-num" aria-hidden="true">17</div>
+
+      <div class="stage-head">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="statusText">本轮剩余 50 人</span>
+        </div>
+        <div class="stage-tools">
+          <div class="progress-copy" id="progressCopy">已抽 <b id="drawnCount">0</b><span id="progressTotal"> / 50</span></div>
+          <button type="button" class="text-btn" id="resetOpen" title="清空本轮记录">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+            </svg>
+            <span>重置</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="display">
+        <div class="halo" id="halo" aria-hidden="true">
+          <span class="halo-fill"></span>
+          <span class="halo-arc"></span>
+        </div>
+        <p class="eyebrow" id="eyebrow">全班 50 人 · 准备就绪</p>
+        <div class="name-line">
+          <h2 class="name" id="stageName">?</h2>
+        </div>
+        <p class="subline" id="subline">点击下方按钮，随机抽取一位同学</p>
+      </div>
+
+      <div class="stage-foot">
+        <button type="button" class="draw-btn" id="drawBtn" aria-label="开始随机抽取">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.97a4 4 0 0 0 3.3-1.7l5.46-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.97a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.04a4 4 0 0 1-3.3-1.8l-.36-.45"/>
+          </svg>
+          <span id="drawLabel">开始抽取</span>
+        </button>
+        <p class="key-hint">按 <kbd>空格</kbd> 快速抽取</p>
+      </div>
+
+      <div class="stage-progress" aria-hidden="true"><span id="progressFill"></span></div>
+    </section>
+
+    <section class="dock" aria-label="抽签设置与记录">
+      <div class="dock-mode">
+        <div class="dock-label">抽取模式</div>
+        <div class="segmented" id="modeSwitch" role="group" aria-label="抽取模式">
+          <button type="button" data-mode="unique" class="active" aria-pressed="true">不重复</button>
+          <button type="button" data-mode="repeat" aria-pressed="false">可重复</button>
+        </div>
+        <p class="mode-hint" id="modeHint">本轮每人最多抽中一次</p>
+      </div>
+
+      <div class="dock-history">
+        <div class="dock-history-head">
+          <div class="dock-label">本轮记录 <span class="history-count" id="historyCount">0</span></div>
+          <span class="history-caption">最新在前</span>
+        </div>
+        <div class="chips" id="historyList" aria-label="本轮抽签记录">
+          <span class="chips-empty">抽过的同学会出现在这里</span>
+        </div>
+      </div>
+
+      <button type="button" class="roster-link" id="rosterOpen2" aria-label="查看全班名册">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="roster-link-title">全班名册</span>
+        <span class="roster-link-sub">共 50 人</span>
+      </button>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>高三17班 · 共 <b>50</b> 名学生</span>
+    <span class="footer-keys"><kbd>空格</kbd> 抽取 / 揭晓 <span class="dot-sep">·</span> <kbd>F</kbd> 全屏</span>
+  </footer>
+</div>
+
+<dialog class="modal roster-modal" id="rosterDialog" aria-labelledby="rosterTitle">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <div>
+        <p class="modal-kicker">高三17班</p>
+        <h2 id="rosterTitle">全班名册</h2>
+      </div>
+      <button type="button" class="icon-btn close-btn" id="rosterClose" aria-label="关闭名册">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="roster-meta">
+      <span class="meta-item"><i class="meta-dot accent"></i><span id="rosterDrawnLabel">已抽 0 人</span></span>
+      <span class="meta-item"><i class="meta-dot"></i><span id="rosterLeftLabel">未抽 50 人</span></span>
+      <span class="roster-note" id="rosterNote">已抽过的同学本轮不会再被抽中</span>
+    </div>
+    <div class="roster-scroll">
+      <div class="roster-grid" id="rosterGrid"></div>
+    </div>
+    <div class="modal-foot">
+      <span>名册顺序与原始名单一致</span>
+      <button type="button" class="soft-btn" id="rosterDone">关闭</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="modal confirm-modal" id="resetDialog" aria-labelledby="resetTitle">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <div>
+        <p class="modal-kicker">重新开始</p>
+        <h2 id="resetTitle">清空本轮记录？</h2>
+      </div>
+    </div>
+    <p class="confirm-text" id="resetText">本轮记录将被清空，所有同学重新回到抽签池。</p>
+    <div class="modal-actions">
+      <button type="button" class="soft-btn" id="resetCancel">取消</button>
+      <button type="button" class="solid-btn" id="resetConfirm">确认重置</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr-only" id="liveRegion" aria-live="polite"></div>
+<canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+  'use strict';
+
+  const CONFIG = {
+    classNo: '17',
+    className: '高三17班',
+    students: [
+  "陈东宁",
+  "陈梓睿",
+  "迟淼壬",
+  "崔语书",
+  "付联一",
+  "宫昕彤",
+  "宫在一",
+  "郭亦轩",
+  "韩天祎",
+  "贾陈明轩",
+  "李昊洋",
+  "李佳凝",
+  "李荆毅",
+  "李俊潼",
+  "李青阳",
+  "李瑞滢",
+  "刘润堂",
+  "刘澍泽",
+  "刘朔",
+  "刘筱悦",
+  "刘宇宸",
+  "栾佳宁",
+  "马一乔",
+  "倪健朔",
+  "宁奕铭",
+  "商勃源",
+  "苏秦",
+  "孙嘉岐",
+  "孙明宇",
+  "孙宇唐",
+  "索新泽",
+  "佟勃希",
+  "王锐凡",
+  "王希萌",
+  "肖树彤",
+  "徐墨达",
+  "杨露涵",
+  "杨舒乔",
+  "杨展",
+  "张昕然",
+  "张馨艺",
+  "张雨时",
+  "张钊铭",
+  "赵书豪",
+  "赵思琢",
+  "郑景泽",
+  "郑语湘",
+  "朱夏冉",
+  "曹轩瑀",
+  "李霁鹏"
+]
+  };
+  const CONFETTI_COLORS = ["#6fe7d2", "#2dd4bf", "#a7f3d0", "#e0f2fe", "#fde68a"];
+  const TOTAL = CONFIG.students.length;
+  const STORAGE_KEY = 'class-picker-v1-' + CONFIG.classNo;
+  const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    stage: $('stage'),
+    stageName: $('stageName'),
+    eyebrow: $('eyebrow'),
+    subline: $('subline'),
+    statusPill: $('statusPill'),
+    statusText: $('statusText'),
+    drawnCount: $('drawnCount'),
+    progressTotal: $('progressTotal'),
+    progressFill: $('progressFill'),
+    drawBtn: $('drawBtn'),
+    drawLabel: $('drawLabel'),
+    resetOpen: $('resetOpen'),
+    modeSwitch: $('modeSwitch'),
+    modeHint: $('modeHint'),
+    historyList: $('historyList'),
+    historyCount: $('historyCount'),
+    rosterOpen: $('rosterOpen'),
+    rosterOpen2: $('rosterOpen2'),
+    rosterDialog: $('rosterDialog'),
+    rosterClose: $('rosterClose'),
+    rosterDone: $('rosterDone'),
+    rosterGrid: $('rosterGrid'),
+    rosterDrawnLabel: $('rosterDrawnLabel'),
+    rosterLeftLabel: $('rosterLeftLabel'),
+    rosterNote: $('rosterNote'),
+    resetDialog: $('resetDialog'),
+    resetText: $('resetText'),
+    resetCancel: $('resetCancel'),
+    resetConfirm: $('resetConfirm'),
+    soundToggle: $('soundToggle'),
+    fullscreenToggle: $('fullscreenToggle'),
+    toast: $('toast'),
+    liveRegion: $('liveRegion'),
+    confetti: $('confetti'),
+    halo: $('halo')
+  };
+
+  const modeButtons = Array.from(el.modeSwitch.querySelectorAll('button'));
+  const state = {
+    mode: 'unique',
+    drawn: [],
+    view: 'idle',
+    lastWinner: '',
+    restored: false,
+    rolling: false,
+    rollingName: '',
+    pendingWinner: '',
+    rollTimer: 0,
+    lockedUntil: 0,
+    sound: true
+  };
+
+  let audioCtx = null;
+  let lastTickTime = 0;
+  let toastTimer = 0;
+  let rosterItems = [];
+
+  /* ---------- storage ---------- */
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved || typeof saved !== 'object') return;
+      if (saved.mode === 'unique' || saved.mode === 'repeat') state.mode = saved.mode;
+      if (typeof saved.sound === 'boolean') state.sound = saved.sound;
+      if (Array.isArray(saved.drawn)) {
+        const valid = new Set(CONFIG.students);
+        const clean = saved.drawn.filter((name) => typeof name === 'string' && valid.has(name));
+        state.drawn = saved.mode === 'unique' ? Array.from(new Set(clean)) : clean;
+      }
+      if (state.drawn.length) {
+        state.view = 'revealed';
+        state.lastWinner = state.drawn[state.drawn.length - 1];
+        state.restored = true;
+      }
+    } catch (error) {
+      /* 本地文件模式下浏览器可能禁用存储，不影响抽签 */
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        mode: state.mode,
+        drawn: state.drawn,
+        sound: state.sound
+      }));
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  /* ---------- random ---------- */
+  function randomInt(max) {
+    if (max <= 0) return 0;
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+      const buffer = new Uint32Array(1);
+      const limit = Math.floor(0x100000000 / max) * max;
+      let value = 0;
+      do {
+        window.crypto.getRandomValues(buffer);
+        value = buffer[0];
+      } while (value >= limit);
+      return value % max;
+    }
+    return Math.floor(Math.random() * max);
+  }
+
+  function pickFrom(list) {
+    return list[randomInt(list.length)];
+  }
+
+  function coveredNames() {
+    return new Set(state.drawn);
+  }
+
+  function availableNames() {
+    if (state.mode === 'repeat') {
+      const last = state.drawn[state.drawn.length - 1];
+      const pool = last && TOTAL > 1 ? CONFIG.students.filter((name) => name !== last) : CONFIG.students.slice();
+      return pool.length ? pool : CONFIG.students.slice();
+    }
+    const seen = coveredNames();
+    return CONFIG.students.filter((name) => !seen.has(name));
+  }
+
+  function hasDrawnAll() {
+    return state.mode === 'unique' && coveredNames().size >= TOTAL;
+  }
+
+  /* ---------- audio ---------- */
+  function ensureAudio() {
+    if (!state.sound) return null;
+    try {
+      if (!audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        audioCtx = new AudioCtx();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function playTick(now) {
+    if (!state.sound) return;
+    if (now - lastTickTime < 92) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    lastTickTime = now;
+    try {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(620 + Math.random() * 250, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.022, t + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.06);
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  function playChime() {
+    if (!state.sound) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      const start = ctx.currentTime + 0.02;
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((frequency, index) => {
+        const t = start + index * 0.07;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = index === notes.length - 1 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(frequency, t);
+        const volume = index === notes.length - 1 ? 0.045 : 0.032;
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(volume, t + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + (index === notes.length - 1 ? 0.58 : 0.3));
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.65);
+      });
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  function playToggleBlip() {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, t);
+      osc.frequency.exponentialRampToValueAtTime(990, t + 0.11);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.038, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.22);
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  /* ---------- UI rendering ---------- */
+  function buildRoster() {
+    const fragment = document.createDocumentFragment();
+    CONFIG.students.forEach((name, index) => {
+      const item = document.createElement('div');
+      item.className = 'roster-item';
+      item.dataset.name = name;
+
+      const number = document.createElement('span');
+      number.className = 'idx';
+      number.textContent = String(index + 1).padStart(2, '0');
+
+      const label = document.createElement('span');
+      label.className = 'nm';
+      label.textContent = name;
+
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+
+      item.append(number, label, tag);
+      fragment.appendChild(item);
+    });
+    el.rosterGrid.appendChild(fragment);
+    rosterItems = Array.from(el.rosterGrid.querySelectorAll('.roster-item'));
+  }
+
+  function renderModes() {
+    modeButtons.forEach((button) => {
+      const active = button.dataset.mode === state.mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      button.disabled = state.rolling;
+    });
+    el.modeHint.textContent = state.mode === 'unique' ? '本轮每人最多抽中一次' : '同一位同学可能被重复抽中';
+    el.stage.classList.toggle('mode-repeat', state.mode === 'repeat');
+  }
+
+  function renderCounts() {
+    const covered = coveredNames().size;
+    if (state.mode === 'unique') {
+      const left = Math.max(0, TOTAL - covered);
+      el.statusText.textContent = left === 0 ? '本轮全部抽完' : '本轮剩余 ' + left + ' 人';
+      el.statusPill.classList.toggle('is-done', left === 0);
+      el.drawnCount.textContent = String(covered);
+      el.progressTotal.textContent = ' / ' + TOTAL;
+      el.progressFill.style.width = (covered / TOTAL * 100) + '%';
+      el.historyCount.textContent = String(covered);
+    } else {
+      el.statusText.textContent = '可重复抽取';
+      el.statusPill.classList.remove('is-done');
+      el.drawnCount.textContent = String(state.drawn.length);
+      el.progressTotal.textContent = ' 次';
+      el.progressFill.style.width = '0%';
+      el.historyCount.textContent = String(state.drawn.length);
+    }
+  }
+
+  function renderHistory() {
+    el.historyList.replaceChildren();
+    if (!state.drawn.length) {
+      const empty = document.createElement('span');
+      empty.className = 'chips-empty';
+      empty.textContent = '抽过的同学会出现在这里';
+      el.historyList.appendChild(empty);
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    for (let index = state.drawn.length - 1; index >= 0; index -= 1) {
+      const chip = document.createElement('span');
+      chip.className = 'chip' + (index === state.drawn.length - 1 ? ' newest' : '');
+      chip.textContent = state.drawn[index];
+      fragment.appendChild(chip);
+    }
+    el.historyList.appendChild(fragment);
+  }
+
+  function renderStage() {
+    el.stage.classList.toggle('is-idle', state.view === 'idle');
+    el.stage.classList.toggle('is-rolling', state.view === 'rolling');
+    el.stage.classList.toggle('is-revealed', state.view === 'revealed');
+
+    if (state.view === 'idle') {
+      el.stageName.textContent = '?';
+      el.stageName.classList.remove('is-long', 'reveal');
+      el.eyebrow.textContent = '全班 ' + TOTAL + ' 人 · 准备就绪';
+      el.subline.textContent = '点击下方按钮，随机抽取一位同学';
+      el.drawLabel.textContent = '开始抽取';
+      el.drawBtn.setAttribute('aria-label', '开始随机抽取');
+      return;
+    }
+
+    if (state.view === 'rolling') {
+      el.stageName.textContent = state.rollingName || '抽取中';
+      el.stageName.classList.remove('is-long', 'reveal');
+      el.eyebrow.textContent = '正在抽取';
+      el.subline.textContent = '点击按钮可立即揭晓';
+      el.drawLabel.textContent = '立即揭晓';
+      el.drawBtn.setAttribute('aria-label', '立即揭晓抽取结果');
+      return;
+    }
+
+    const complete = hasDrawnAll();
+    el.stageName.textContent = state.lastWinner;
+    el.stageName.classList.toggle('is-long', Array.from(state.lastWinner).length >= 4);
+    if (complete) {
+      el.eyebrow.textContent = state.restored ? '上轮抽签 · 已全部抽完' : '本轮抽中 · 已全部抽完';
+      el.subline.textContent = '全班 ' + TOTAL + ' 位同学都已抽过，重置后可开始新一轮';
+      el.drawLabel.textContent = '重新开始';
+      el.drawBtn.setAttribute('aria-label', '重新开始一轮抽签');
+    } else {
+      el.eyebrow.textContent = state.restored ? '上次抽中 · 请回答' : '本轮抽中 · 请回答';
+      if (state.mode === 'repeat') {
+        el.subline.textContent = '已抽取 ' + state.drawn.length + ' 次 · 点击「再抽一位」继续';
+      } else {
+        el.subline.textContent = '还剩 ' + (TOTAL - coveredNames().size) + ' 位同学 · 点击「再抽一位」继续';
+      }
+      el.drawLabel.textContent = '再抽一位';
+      el.drawBtn.setAttribute('aria-label', '再随机抽取一位同学');
+    }
+  }
+
+  function renderRoster() {
+    const counts = new Map();
+    state.drawn.forEach((name) => {
+      counts.set(name, (counts.get(name) || 0) + 1);
+    });
+    const covered = counts.size;
+    const left = TOTAL - covered;
+
+    if (state.mode === 'unique') {
+      el.rosterDrawnLabel.textContent = '已抽 ' + covered + ' 人';
+      el.rosterLeftLabel.textContent = '未抽 ' + left + ' 人';
+      el.rosterNote.textContent = '已抽过的同学本轮不会再被抽中';
+    } else {
+      el.rosterDrawnLabel.textContent = '覆盖 ' + covered + ' 人';
+      el.rosterLeftLabel.textContent = '累计抽取 ' + state.drawn.length + ' 次';
+      el.rosterNote.textContent = '可重复模式下，所有同学都保留在抽签池中';
+    }
+
+    rosterItems.forEach((item) => {
+      const count = counts.get(item.dataset.name) || 0;
+      const tagged = state.mode === 'unique' && count > 0;
+      const hit = state.mode === 'repeat' && count > 0;
+      item.classList.toggle('is-drawn', tagged);
+      item.classList.toggle('is-hit', hit);
+      const tag = item.querySelector('.tag');
+      tag.textContent = hit ? count + ' 次' : '';
+    });
+  }
+
+  function renderSound() {
+    const onIcon = el.soundToggle.querySelector('.icon-sound-on');
+    const offIcon = el.soundToggle.querySelector('.icon-sound-off');
+    onIcon.hidden = !state.sound;
+    offIcon.hidden = state.sound;
+    el.soundToggle.setAttribute('aria-pressed', state.sound ? 'true' : 'false');
+    el.soundToggle.setAttribute('aria-label', state.sound ? '关闭音效' : '开启音效');
+    el.soundToggle.title = state.sound ? '音效已开启' : '音效已关闭';
+  }
+
+  function renderControls() {
+    el.resetOpen.disabled = state.rolling;
+    modeButtons.forEach((button) => {
+      button.disabled = state.rolling;
+    });
+  }
+
+  function refresh() {
+    renderModes();
+    renderCounts();
+    renderHistory();
+    renderStage();
+    renderRoster();
+    renderControls();
+  }
+
+  /* ---------- drawing ---------- */
+  function beginRoll() {
+    if (state.rolling) return;
+    if (performance.now() < state.lockedUntil) return;
+    const pool = availableNames();
+    if (!pool.length) {
+      openReset();
+      return;
+    }
+
+    ensureAudio();
+    state.pendingWinner = pickFrom(pool);
+    state.rolling = true;
+    state.view = 'rolling';
+    state.restored = false;
+    state.lockedUntil = 0;
+    lastTickTime = 0;
+
+    const displayPoolBase = pool.length > 1
+      ? pool.filter((name) => name !== state.pendingWinner)
+      : pool;
+    const displayPool = displayPoolBase.length ? displayPoolBase : pool;
+    state.rollingName = pickFrom(displayPool);
+
+    renderStage();
+    renderControls();
+
+    const startedAt = performance.now();
+    const duration = REDUCE_MOTION.matches ? 360 : 2350;
+
+    const step = (now) => {
+      if (!state.rolling) return;
+      const elapsed = now - startedAt;
+      if (elapsed >= duration) {
+        finishRoll();
+        return;
+      }
+      const progress = Math.min(1, elapsed / duration);
+      const nextName = pickFrom(displayPool);
+      state.rollingName = nextName;
+      el.stageName.textContent = nextName;
+      el.stageName.classList.remove('is-long');
+      playTick(now);
+      const delay = REDUCE_MOTION.matches ? 60 : 38 + Math.pow(progress, 4) * 245;
+      state.rollTimer = window.setTimeout(() => step(performance.now()), delay);
+    };
+
+    state.rollTimer = window.setTimeout(() => step(performance.now()), 45);
+    el.liveRegion.textContent = '开始抽取';
+  }
+
+  function finishRoll() {
+    if (!state.rolling) return;
+    state.rolling = false;
+    window.clearTimeout(state.rollTimer);
+    state.rollTimer = 0;
+
+    const winner = state.pendingWinner || availableNames()[0];
+    state.pendingWinner = '';
+    state.rollingName = '';
+    state.view = 'revealed';
+    state.lastWinner = winner;
+    state.restored = false;
+    state.drawn.push(winner);
+    state.lockedUntil = performance.now() + 380;
+    saveState();
+    refresh();
+
+    if (!REDUCE_MOTION.matches) {
+      el.stageName.classList.remove('reveal');
+      void el.stageName.offsetWidth;
+      el.stageName.classList.add('reveal');
+      el.halo.classList.remove('pulse');
+      void el.halo.offsetWidth;
+      el.halo.classList.add('pulse');
+      window.setTimeout(() => el.halo.classList.remove('pulse'), 950);
+    }
+
+    playChime();
+    burstConfetti();
+    const complete = hasDrawnAll();
+    el.liveRegion.textContent = complete
+      ? '抽中 ' + winner + '，本轮全部抽完。'
+      : '抽中 ' + winner + '。';
+  }
+
+  function handleDraw() {
+    if (state.rolling) {
+      finishRoll();
+      return;
+    }
+    if (performance.now() < state.lockedUntil) return;
+    if (hasDrawnAll()) {
+      openReset();
+      return;
+    }
+    beginRoll();
+  }
+
+  /* ---------- mode / reset ---------- */
+  function setMode(mode) {
+    if (state.rolling || mode === state.mode) return;
+    state.mode = mode;
+    if (mode === 'unique') {
+      state.drawn = Array.from(new Set(state.drawn));
+    }
+    saveState();
+    refresh();
+  }
+
+  function openReset() {
+    if (state.rolling) return;
+    if (!state.drawn.length) {
+      showToast('本轮还没有抽签记录');
+      return;
+    }
+    el.resetText.textContent = '本轮共 ' + state.drawn.length + ' 条抽签记录，确认后将全部清空，所有同学重新回到抽签池。';
+    if (!el.resetDialog.open) el.resetDialog.showModal();
+  }
+
+  function resetRound() {
+    if (state.rolling) return;
+    window.clearTimeout(state.rollTimer);
+    state.rollTimer = 0;
+    state.drawn = [];
+    state.view = 'idle';
+    state.lastWinner = '';
+    state.restored = false;
+    state.rolling = false;
+    state.rollingName = '';
+    state.pendingWinner = '';
+    state.lockedUntil = 0;
+    saveState();
+    if (el.resetDialog.open) el.resetDialog.close();
+    refresh();
+    el.drawBtn.focus({ preventScroll: true });
+    showToast('新一轮已开始');
+    el.liveRegion.textContent = '新一轮已开始';
+  }
+
+  function openRoster() {
+    renderRoster();
+    if (!el.rosterDialog.open) el.rosterDialog.showModal();
+  }
+
+  function closeRoster() {
+    if (el.rosterDialog.open) el.rosterDialog.close();
+  }
+
+  /* ---------- toast ---------- */
+  function showToast(message) {
+    window.clearTimeout(toastTimer);
+    el.toast.textContent = message;
+    el.toast.classList.add('show');
+    toastTimer = window.setTimeout(() => {
+      el.toast.classList.remove('show');
+    }, 2100);
+  }
+
+  /* ---------- fullscreen / sound ---------- */
+  async function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      showToast('当前浏览器未允许全屏');
+    }
+  }
+
+  function syncFullscreenUI() {
+    const active = Boolean(document.fullscreenElement);
+    el.fullscreenToggle.querySelector('.icon-expand').hidden = active;
+    el.fullscreenToggle.querySelector('.icon-compress').hidden = !active;
+    el.fullscreenToggle.setAttribute('aria-label', active ? '退出全屏' : '进入全屏');
+    el.fullscreenToggle.title = active ? '退出全屏 (F)' : '全屏 (F)';
+  }
+
+  function toggleSound() {
+    state.sound = !state.sound;
+    saveState();
+    renderSound();
+    if (state.sound) playToggleBlip();
+  }
+
+  /* ---------- confetti ---------- */
+  const canvas = el.confetti;
+  const ctx = canvas.getContext('2d');
+  let confettiParticles = [];
+  let confettiFrame = 0;
+
+  function sizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.floor(window.innerWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function burstConfetti() {
+    if (REDUCE_MOTION.matches) return;
+    sizeCanvas();
+    const rect = el.stageName.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const count = window.innerWidth < 700 ? 70 : 120;
+    confettiParticles = [];
+
+    for (let index = 0; index < count; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 10.5;
+      confettiParticles.push({
+        x: centerX + (Math.random() - 0.5) * rect.width * 0.55,
+        y: centerY + (Math.random() - 0.5) * 26,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed * 0.82 - 3.4,
+        gravity: 0.16 + Math.random() * 0.12,
+        drag: 0.984 + Math.random() * 0.012,
+        w: 4 + Math.random() * 7,
+        h: 3 + Math.random() * 6,
+        rotation: Math.random() * Math.PI,
+        spin: (Math.random() - 0.5) * 0.3,
+        color: CONFETTI_COLORS[index % CONFETTI_COLORS.length],
+        life: 0,
+        ttl: 85 + Math.random() * 60,
+        circle: Math.random() < 0.22
+      });
+    }
+    if (!confettiFrame) confettiFrame = window.requestAnimationFrame(animateConfetti);
+  }
+
+  function animateConfetti() {
+    confettiFrame = 0;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    ctx.clearRect(0, 0, width, height);
+
+    for (let index = confettiParticles.length - 1; index >= 0; index -= 1) {
+      const particle = confettiParticles[index];
+      particle.life += 1;
+      particle.vx *= particle.drag;
+      particle.vy = particle.vy * particle.drag + particle.gravity;
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.rotation += particle.spin;
+
+      if (particle.life > particle.ttl || particle.y > height + 40) {
+        confettiParticles.splice(index, 1);
+        continue;
+      }
+
+      const alpha = Math.max(0, 1 - Math.pow(particle.life / particle.ttl, 2));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(particle.x, particle.y);
+      ctx.rotate(particle.rotation);
+      ctx.fillStyle = particle.color;
+      if (particle.circle) {
+        ctx.beginPath();
+        ctx.arc(0, 0, particle.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-particle.w / 2, -particle.h / 2, particle.w, particle.h);
+      }
+      ctx.restore();
+    }
+
+    if (confettiParticles.length) {
+      confettiFrame = window.requestAnimationFrame(animateConfetti);
+    } else {
+      ctx.clearRect(0, 0, width, height);
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    if (confettiParticles.length) sizeCanvas();
+  });
+
+  /* ---------- events ---------- */
+  el.drawBtn.addEventListener('click', handleDraw);
+  el.resetOpen.addEventListener('click', openReset);
+  el.rosterOpen.addEventListener('click', openRoster);
+  el.rosterOpen2.addEventListener('click', openRoster);
+  el.rosterClose.addEventListener('click', closeRoster);
+  el.rosterDone.addEventListener('click', closeRoster);
+  el.resetCancel.addEventListener('click', () => el.resetDialog.close());
+  el.resetConfirm.addEventListener('click', resetRound);
+  el.soundToggle.addEventListener('click', toggleSound);
+  el.fullscreenToggle.addEventListener('click', toggleFullscreen);
+
+  modeButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      setMode(button.dataset.mode);
+      if (event.detail > 0 && !state.rolling) {
+        el.drawBtn.focus({ preventScroll: true });
+      }
+    });
+  });
+
+  [el.rosterDialog, el.resetDialog].forEach((dialog) => {
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  });
+
+  document.addEventListener('fullscreenchange', syncFullscreenUI);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented || event.repeat) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (document.querySelector('dialog[open]')) return;
+
+    const target = event.target;
+    const inField = target instanceof Element && target.closest('input, textarea, select, [contenteditable="true"]');
+    if (inField) return;
+
+    if (event.code === 'Space' || event.key === ' ') {
+      const onOtherButton = target instanceof Element
+        && target.closest('button')
+        && !target.closest('#drawBtn');
+      if (onOtherButton) return;
+      event.preventDefault();
+      handleDraw();
+      return;
+    }
+
+    if (event.key === 'f' || event.key === 'F') {
+      event.preventDefault();
+      toggleFullscreen();
+    }
+  });
+
+  /* ---------- init ---------- */
+  loadState();
+  buildRoster();
+  renderSound();
+  syncFullscreenUI();
+  refresh();
+})();
+</script>
+</body>
+</html>

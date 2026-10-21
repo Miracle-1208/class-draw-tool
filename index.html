@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>高三课堂 · 随机抽签</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #070b14;
+    --text: #f2f6fc;
+    --muted: rgba(226, 236, 250, 0.62);
+    --faint: rgba(226, 236, 250, 0.38);
+    --line: rgba(255, 255, 255, 0.09);
+    --line-strong: rgba(255, 255, 255, 0.15);
+    --font-sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Source Han Sans SC", system-ui, -apple-system, sans-serif;
+    --font-num: "Bahnschrift", "DIN Alternate", "Arial Narrow", var(--font-sans);
+  }
+  html { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: #6fe7d2; color: #04241f; }
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 74% -12%, rgba(40, 200, 180, 0.15), transparent 48%),
+      radial-gradient(ellipse at 8% 92%, rgba(238, 177, 67, 0.10), transparent 46%),
+      var(--bg);
+  }
+  .bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 76px 76px;
+    opacity: 0.2;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 5%, transparent 70%);
+    mask-image: radial-gradient(ellipse at 50% 40%, #000 5%, transparent 70%);
+  }
+  .bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(3, 6, 12, 0.7) 100%);
+  }
+  .wrap {
+    width: min(1080px, calc(100% - 44px));
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: clamp(26px, 5vh, 54px) 0 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(111, 231, 210, 0.2);
+    border-radius: 11px;
+    background: rgba(111, 231, 210, 0.08);
+    color: #6fe7d2;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .brand-text {
+    color: var(--faint);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+  .offline-pill {
+    height: 29px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  .offline-pill i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #6fe7d2;
+    box-shadow: 0 0 8px rgba(111, 231, 210, 0.6);
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(46px, 9vh, 96px) 0 clamp(36px, 6vh, 60px);
+  }
+  .intro { max-width: 620px; margin-bottom: clamp(28px, 4.5vh, 46px); }
+  .intro-kicker {
+    margin: 0 0 12px;
+    color: #6fe7d2;
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(34px, 5.2vw, 58px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+  }
+  .lead {
+    margin: 15px 0 0;
+    color: var(--muted);
+    font-size: clamp(12px, 1.2vw, 14px);
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .class-card {
+    --card-accent: #6fe7d2;
+    --card-glow: rgba(40, 200, 180, 0.22);
+    --card-soft: rgba(111, 231, 210, 0.09);
+    position: relative;
+    min-height: clamp(215px, 29vh, 272px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(20px, 2.5vw, 28px);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background:
+      radial-gradient(125% 125% at 102% -4%, var(--card-glow) 0%, transparent 55%),
+      linear-gradient(158deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.016) 52%, var(--card-soft) 100%);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    text-decoration: none;
+    isolation: isolate;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.28s ease;
+  }
+  .class-card::before {
+    content: "";
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    right: -90px;
+    bottom: -160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--card-glow), transparent 65%);
+    filter: blur(16px);
+    opacity: 0.75;
+    z-index: -1;
+    transition: opacity 0.3s ease, transform 0.35s ease;
+  }
+  .class-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 24%;
+    right: 24%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
+    opacity: 0.45;
+  }
+  .class-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.19);
+    box-shadow: 0 38px 110px rgba(0, 0, 0, 0.5), 0 0 60px -22px var(--card-glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  .class-card:hover::before { opacity: 1; transform: scale(1.08); }
+  .class-card:focus-visible { outline: 2px solid var(--card-accent); outline-offset: 4px; }
+  .class-card.class-22 {
+    --card-accent: #fbd36a;
+    --card-glow: rgba(238, 177, 67, 0.2);
+    --card-soft: rgba(251, 211, 106, 0.09);
+  }
+  .card-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .card-kicker {
+    padding: 5px 8px;
+    border: 1px solid var(--ghost-line, var(--line));
+    border-radius: 6px;
+    background: var(--card-soft);
+    color: var(--card-accent);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    opacity: 0.85;
+  }
+  .card-arrow {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+  .card-arrow svg { width: 15px; height: 15px; }
+  .class-card:hover .card-arrow {
+    transform: translate(2px, -2px);
+    border-color: var(--card-accent);
+    background: var(--card-soft);
+    color: var(--card-accent);
+  }
+  .card-number {
+    position: absolute;
+    right: clamp(14px, 2.5vw, 28px);
+    bottom: clamp(46px, 6vh, 62px);
+    z-index: 0;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--card-accent);
+    opacity: 0.24;
+    font-family: var(--font-num);
+    font-size: clamp(150px, 19vw, 224px);
+    font-weight: 700;
+    line-height: 0.72;
+    letter-spacing: -0.06em;
+    user-select: none;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .class-card:hover .card-number { opacity: 0.36; }
+  .card-bottom {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .card-info { min-width: 0; }
+  .card-bottom h2 {
+    margin: 0;
+    font-size: clamp(20px, 2.2vw, 25px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .card-bottom p {
+    margin: 8px 0 0;
+    color: var(--faint);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .card-enter {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 1px;
+    color: var(--card-accent);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    opacity: 0.75;
+    transition: opacity 0.2s ease, transform 0.25s ease;
+  }
+  .card-enter svg { width: 13px; height: 13px; }
+  .class-card:hover .card-enter { opacity: 1; transform: translateX(3px); }
+  .tips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: clamp(24px, 4vh, 38px);
+    color: var(--muted);
+    font-size: 10.5px;
+    letter-spacing: 0.035em;
+  }
+  .tips span { display: inline-flex; align-items: center; gap: 7px; }
+  .tips i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+  }
+  .foot b { color: var(--muted); font-weight: 500; }
+  @media (max-width: 760px) {
+    .cards { grid-template-columns: 1fr; }
+    .class-card { min-height: 200px; }
+    .card-number { font-size: 180px; }
+    .wrap { width: min(100% - 28px, 640px); }
+    .foot { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .top { align-items: flex-start; }
+    .brand-text { display: none; }
+  }
+  @media (max-width: 430px) {
+    .offline-pill { height: 27px; padding: 0 9px; font-size: 9px; }
+    .intro { margin-bottom: 24px; }
+    .class-card { min-height: 185px; border-radius: 20px; }
+    .card-number { font-size: 150px; bottom: 42px; }
+    .tips { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">高三</div>
+      <span class="brand-text">课堂工具 · 随机抽签</span>
+    </div>
+    <span class="offline-pill"><i aria-hidden="true"></i>浏览器直接可用</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <p class="intro-kicker">课堂提问 · 随机抽取</p>
+      <h1 id="pageTitle">选择今天要用的班级</h1>
+      <p class="lead">两个班级各自独立抽签。名单已内置在页面中，抽签记录只保存在当前浏览器，不会上传到别处。课堂电脑或手机上打开即可使用。</p>
+    </section>
+
+    <div class="cards">
+        <a class="class-card class-17" href="class-17.html" aria-label="进入高三17班随机抽签">
+          <div class="card-top">
+            <span class="card-kicker">高三</span>
+            <span class="card-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+          <div class="card-number" aria-hidden="true">17</div>
+          <div class="card-bottom">
+            <div class="card-info">
+              <h2>高三17班</h2>
+              <p>50 位同学 · 随机点名</p>
+            </div>
+            <span class="card-enter">
+              进入抽签
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+        <a class="class-card class-22" href="class-22.html" aria-label="进入高三22班随机抽签">
+          <div class="card-top">
+            <span class="card-kicker">高三</span>
+            <span class="card-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+          <div class="card-number" aria-hidden="true">22</div>
+          <div class="card-bottom">
+            <div class="card-info">
+              <h2>高三22班</h2>
+              <p>50 位同学 · 随机点名</p>
+            </div>
+            <span class="card-enter">
+              进入抽签
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+    </div>
+
+    <div class="tips" aria-label="使用特点">
+      <span><i aria-hidden="true"></i>不重复模式下，每人本轮最多抽中一次</span>
+      <span><i aria-hidden="true"></i>刷新页面不丢失本轮记录</span>
+      <span><i aria-hidden="true"></i>全屏展示，教室后排也看得清</span>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span><b>提示：</b>点击班级卡片进入，按空格键即可抽取。本页含班级名单，请勿公开转发链接。</span>
+    <span>在线版 · 无需安装</span>
+  </footer>
+</div>
+</body>
+</html>
